@@ -64,6 +64,9 @@ const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/back2u';
 mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 30000,
 })
 .then(() => console.log('MongoDB connected...'))
 .catch(err => console.log('MongoDB connection error:', err));
