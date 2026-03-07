@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Back2u - Lost & Found Portal</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .orb1{position:fixed;width:500px;height:500px;background:#00d4ff;top:-200px;left:-100px;border-radius:50%;filter:blur(120px);opacity:0.07;pointer-events:none;z-index:0;}
+  .orb2{position:fixed;width:400px;height:400px;background:#7c3aed;bottom:-150px;right:-100px;border-radius:50%;filter:blur(100px);opacity:0.08;pointer-events:none;z-index:0;}
+  .brand-icon{width:48px;height:48px;background:linear-gradient(135deg,#00d4ff,#7c3aed);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 8px 24px rgba(0,212,255,0.3);}
+
+  /* Homepage public items */
+  .home-wrap { position:relative; z-index:1; min-height:100vh; }
+  .home-nav { display:flex; justify-content:space-between; align-items:center; padding:16px 32px; background:rgba(6,8,15,0.9); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+  .home-hero { text-align:center; padding:64px 24px 40px; }
+  .home-hero h1 { font-size:clamp(2.2rem,6vw,4rem); font-weight:700; line-height:1.1; margin-bottom:16px; }
+  .home-hero p { color:var(--muted2); font-size:1rem; max-width:480px; margin:0 auto 28px; line-height:1.7; }
+  .home-hero .cta-row { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+  .public-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; padding:0 32px 60px; max-width:1200px; margin:0 auto; }
+  .public-card { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:all 0.3s; cursor:pointer; }
+  .public-card:hover { border-color:rgba(0,212,255,0.25); transform:translateY(-4px); box-shadow:0 16px 48px rgba(0,0,0,0.4); }
+  .public-card img { width:100%; height:160px; object-fit:cover; display:block; }
+  .public-card .no-img { width:100%; height:160px; background:linear-gradient(135deg,#161f2e,#1e2d42); display:flex; align-items:center; justify-content:center; font-size:2rem; color:var(--muted); }
+  .public-card .card-body { padding:14px; }
+  .public-card h3 { font-size:0.9rem; font-weight:600; margin-bottom:6px; color:var(--text); }
+  .public-card .lock-hint { font-size:0.78rem; color:var(--muted); display:flex; align-items:center; gap:5px; }
+  .public-card .lock-hint span { color:var(--accent); }
+
+  .section-label { text-align:center; padding:0 24px 20px; }
+  .section-label h2 { font-size:1.2rem; color:var(--text); margin-bottom:6px; }
+  .section-label p { font-size:0.87rem; color:var(--muted); }
+
+  .loading-pub { text-align:center; color:var(--muted); padding:48px; grid-column:1/-1; }
+</style>
+</head>
+<body>
+<div class="orb1"></div>
+<div class="orb2"></div>
+
+<!-- PUBLIC HOMEPAGE (shown when NOT logged in) -->
+<div class="home-wrap" id="homePage" style="display:none;">
+  <nav class="home-nav">
+    <div class="b2u-logo">Back2u</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="showAuthModal('login')">Sign In</button>
+      <button class="btn btn-primary" onclick="showAuthModal('register')">Sign Up</button>
+    </div>
+  </nav>
+
+  <div class="home-hero">
+    <h1>Lost something?<br><span class="gradient-text">We'll help you find it.</span></h1>
+    <p>Back2u is a community lost & found platform. Browse items below — sign in to see full details and contact the finder.</p>
+    <div class="cta-row">
+      <button class="btn btn-primary" onclick="showAuthModal('register')">Get Started Free</button>
+      <button class="btn btn-ghost" onclick="showAuthModal('login')">Already have an account?</button>
+    </div>
+  </div>
+
+  <div class="section-label">
+    <h2>📋 Recently Posted Items</h2>
+    <p>Sign in to see full details, contact information, and post your own items.</p>
+  </div>
+
+  <div class="public-grid" id="publicGrid">
+    <div class="loading-pub">Loading items...</div>
+  </div>
+</div>
+
+<!-- AUTH MODAL overlay -->
+<div id="authOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); z-index:500; display:none; align-items:center; justify-content:center; padding:24px;">
+  <div class="auth-box animate-up" style="position:relative;">
+    <button onclick="hideAuthModal()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.06);border:1px solid var(--border2);color:var(--muted);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;line-height:1;">×</button>
+
+    <div class="auth-logo">
+      <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px;">
+        <div class="brand-icon">📦</div>
+        <div class="logo-text">Back2u</div>
+      </div>
+      <p class="tagline">Reconnecting people with lost items</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" id="registerTab" onclick="switchTab('register')">Sign Up</button>
+    </div>
+
+    <div id="authError" class="auth-error" style="display:none;"></div>
+    <div id="authSuccess" class="auth-success" style="display:none;"></div>
+
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="auth-form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="you@example.com" required>
+      </div>
+      <div class="auth-form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required style="padding-right:44px;">
+        <span class="pw-toggle" onclick="togglePw('password',this)">👁️</span>
+      </div>
+      <button class="auth-submit" onclick="handleLogin()">Sign In →</button>
+      <div class="forgot-link"><a onclick="showReset()">Forgot your password?</a></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerForm" style="display:none;">
+      <div class="auth-form-group">
+        <label>Full Name</label>
+        <input type="text" id="regUsername" placeholder="Your name">
+      </div>
+      <div class="auth-form-group">
+        <label>Email Address</label>
+        <input type="email" id="regEmail" placeholder="you@example.com" required>
+      </div>
+      <div class="auth-form-group">
+        <label>Phone (WhatsApp)</label>
+        <input type="text" id="regPhone" placeholder="+91 XXXXX XXXXX">
+      </div>
+      <div class="auth-form-group">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="Create a strong password" style="padding-right:44px;">
+        <span class="pw-toggle" onclick="togglePw('regPassword',this)">👁️</span>
+      </div>
+      <button class="auth-submit" onclick="handleRegister()">Create Account →</button>
+    </div>
+
+    <!-- RESET -->
+    <div id="resetForm" style="display:none;">
+      <h3 style="font-size:1.05rem;margin-bottom:20px;color:var(--text);">🔐 Reset Password</h3>
+      <div class="auth-form-group">
+        <label>Your Email</label>
+        <input type="email" id="resetEmail" placeholder="Registered email">
+      </div>
+      <button class="auth-submit" onclick="sendOtp()" style="margin-bottom:14px;">Send OTP</button>
+      <div id="otpSection" style="display:none;">
+        <div class="auth-form-group">
+          <label>OTP Code</label>
+          <input type="text" id="resetOTP" placeholder="6-digit code">
+        </div>
+        <div class="auth-form-group">
+          <label>New Password</label>
+          <input type="password" id="resetNewPassword" placeholder="New password" style="padding-right:44px;">
+          <span class="pw-toggle" onclick="togglePw('resetNewPassword',this)">👁️</span>
+        </div>
+        <button class="auth-submit" onclick="doReset()">Reset Password</button>
+      </div>
+      <div class="forgot-link" style="margin-top:14px;"><a onclick="showLoginForm()">← Back to login</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Detect backend URL — works locally and on Railway
+  const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : '/api';
+  const SERVER_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : '';
+
+  // If already logged in, go straight to posts page
+  if (localStorage.getItem('userId')) {
+    window.location.href = 'post.html';
+  } else {
+    document.getElementById('homePage').style.display = 'block';
+    loadPublicPosts();
+  }
+
+  async function loadPublicPosts() {
+    try {
+      const res = await fetch(`${API}/posts`);
+      const posts = await res.json();
+      const grid = document.getElementById('publicGrid');
+      if (!posts.length) { grid.innerHTML = '<div class="loading-pub">No items posted yet.</div>'; return; }
+      grid.innerHTML = posts.map(p => `
+        <div class="public-card" onclick="showAuthModal('login')">
+          ${p.image ? `<img src="${SERVER_BASE}${p.image}" onerror="this.parentElement.querySelector('.no-img') && this.style.display='none'">` : '<div class="no-img">📦</div>'}
+          <div class="card-body">
+            <h3>${escHtml(p.title)}</h3>
+            <div class="lock-hint">🔒 <span>Sign in</span> to see details</div>
+          </div>
+        </div>`).join('');
+    } catch(e) {
+      document.getElementById('publicGrid').innerHTML = '<div class="loading-pub">Could not load items.</div>';
+    }
+  }
+
+  function escHtml(t) { const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
+
+  function showAuthModal(tab) {
+    const o = document.getElementById('authOverlay');
+    o.style.display = 'flex';
+    switchTab(tab || 'login');
+    clearMsgs();
+  }
+
+  function hideAuthModal() {
+    document.getElementById('authOverlay').style.display = 'none';
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('authOverlay').addEventListener('click', function(e) {
+    if (e.target === this) hideAuthModal();
+  });
+
+  function togglePw(id, icon) {
+    const i = document.getElementById(id);
+    i.type = i.type === 'password' ? 'text' : 'password';
+    icon.textContent = i.type === 'password' ? '👁️' : '🙈';
+  }
+
+  function switchTab(tab) {
+    document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+    document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('resetForm').style.display = 'none';
+    clearMsgs();
+  }
+
+  function showReset() { document.getElementById('loginForm').style.display='none'; document.getElementById('resetForm').style.display='block'; clearMsgs(); }
+  function showLoginForm() { document.getElementById('resetForm').style.display='none'; document.getElementById('loginForm').style.display='block'; clearMsgs(); }
+
+  function showErr(m) { const e=document.getElementById('authError'); e.innerHTML='⚠️ '+m; e.style.display='block'; document.getElementById('authSuccess').style.display='none'; }
+  function showOk(m) { const e=document.getElementById('authSuccess'); e.innerHTML='✅ '+m; e.style.display='block'; document.getElementById('authError').style.display='none'; }
+  function clearMsgs() { document.getElementById('authError').style.display='none'; document.getElementById('authSuccess').style.display='none'; }
+
+  async function handleLogin() {
+    const email=document.getElementById('email').value, password=document.getElementById('password').value;
+    if (!email||!password) { showErr('Please fill in all fields'); return; }
+    try {
+      const res=await fetch(`${API}/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+      const d=await res.json();
+      if (res.ok) {
+        localStorage.setItem('userId',d.userId); localStorage.setItem('userEmail',email);
+        localStorage.setItem('username',d.username); localStorage.setItem('phone',d.phone);
+        showOk('Welcome back! Redirecting...');
+        setTimeout(()=>window.location.href='post.html',900);
+      } else showErr(d.message||'Login failed');
+    } catch(e) { showErr('Cannot connect to server. Make sure it is running.'); }
+  }
+
+  async function handleRegister() {
+    const username=document.getElementById('regUsername').value, email=document.getElementById('regEmail').value,
+          phone=document.getElementById('regPhone').value, password=document.getElementById('regPassword').value;
+    if (!email||!password) { showErr('Email and password are required'); return; }
+    try {
+      const res=await fetch(`${API}/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,email,phone,password})});
+      const d=await res.json();
+      if (res.ok) {
+        localStorage.setItem('userId',d.userId); localStorage.setItem('userEmail',email);
+        localStorage.setItem('username',d.username); localStorage.setItem('phone',phone);
+        showOk('Account created! Redirecting...');
+        setTimeout(()=>window.location.href='post.html',1000);
+      } else showErr(d.message||'Registration failed');
+    } catch(e) { showErr('Cannot connect to server.'); }
+  }
+
+  async function sendOtp() {
+    const email=document.getElementById('resetEmail').value;
+    if (!email) { showErr('Enter your email'); return; }
+    try {
+      const res=await fetch(`${API}/forgot-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+      const d=await res.json();
+      if (res.ok) { showOk('OTP sent to your email'); document.getElementById('otpSection').style.display='block'; }
+      else showErr(d.message);
+    } catch(e) { showErr('Cannot connect to server.'); }
+  }
+
+  async function doReset() {
+    const email=document.getElementById('resetEmail').value, otp=document.getElementById('resetOTP').value,
+          newPassword=document.getElementById('resetNewPassword').value;
+    if (!email||!otp||!newPassword) { showErr('Fill in all fields'); return; }
+    try {
+      const res=await fetch(`${API}/reset-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,otp,newPassword})});
+      const d=await res.json();
+      if (res.ok) { showOk('Password reset! You can now log in.'); setTimeout(showLoginForm,1500); }
+      else showErr(d.message);
+    } catch(e) { showErr('Cannot connect to server.'); }
+  }
+</script>
+</body>
+</html>

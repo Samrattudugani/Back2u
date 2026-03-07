@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Back2u</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .orb1{position:fixed;width:500px;height:500px;background:#00d4ff;top:-200px;left:-100px;border-radius:50%;filter:blur(120px);opacity:0.07;pointer-events:none;z-index:0;}
+  .orb2{position:fixed;width:400px;height:400px;background:#7c3aed;bottom:-150px;right:-100px;border-radius:50%;filter:blur(100px);opacity:0.08;pointer-events:none;z-index:0;}
+  .brand-icon{width:48px;height:48px;background:linear-gradient(135deg,#00d4ff,#7c3aed);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 8px 24px rgba(0,212,255,0.3);}
+</style>
+</head>
+<body>
+<div class="orb1"></div>
+<div class="orb2"></div>
+
+<div class="auth-wrapper">
+  <div class="auth-box animate-up">
+    <div class="auth-logo">
+      <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px;">
+        <div class="brand-icon">📦</div>
+        <div class="logo-text">Back2u</div>
+      </div>
+      <p class="tagline">Reconnecting people with lost items</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" id="registerTab" onclick="switchTab('register')">Sign Up</button>
+    </div>
+
+    <div id="authError" class="auth-error" style="display:none;"></div>
+    <div id="authSuccess" class="auth-success" style="display:none;"></div>
+
+    <!-- LOGIN -->
+    <form id="loginForm" onsubmit="e=>e.preventDefault()">
+      <div class="auth-form-group">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" required>
+      </div>
+      <div class="auth-form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Your password" required style="padding-right:44px;">
+        <span class="pw-toggle" onclick="togglePw('loginPassword',this)">👁️</span>
+      </div>
+      <button type="submit" class="auth-submit">Sign In →</button>
+      <div class="forgot-link"><a id="forgotLink">Forgot your password?</a></div>
+    </form>
+
+    <!-- REGISTER (hidden by default) -->
+    <div id="registerForm" style="display:none;">
+      <div id="registerError" class="auth-error" style="display:none;"></div>
+      <div id="registerSuccess" class="auth-success" style="display:none;"></div>
+      <div class="auth-form-group">
+        <label>Full Name</label>
+        <input type="text" id="registerUsername" placeholder="Your name">
+      </div>
+      <div class="auth-form-group">
+        <label>Email Address</label>
+        <input type="email" id="registerEmail" placeholder="you@example.com">
+      </div>
+      <div class="auth-form-group">
+        <label>Phone (WhatsApp)</label>
+        <input type="text" id="registerPhone" placeholder="+91 XXXXX XXXXX">
+      </div>
+      <div class="auth-form-group">
+        <label>Password</label>
+        <input type="password" id="registerPassword" placeholder="Create a password" style="padding-right:44px;">
+        <span class="pw-toggle" onclick="togglePw('registerPassword',this)">👁️</span>
+      </div>
+      <!-- Hidden submit trigger for script.js compatibility -->
+      <form id="registerFormInner" style="display:none;"></form>
+      <button class="auth-submit" id="regSubmitBtn">Create Account →</button>
+    </div>
+
+    <!-- RESET -->
+    <div id="resetSection" style="display:none;">
+      <h3 style="font-size:1.05rem;margin-bottom:20px;color:var(--text);">🔐 Reset Password</h3>
+      <div class="auth-form-group">
+        <label>Your Email</label>
+        <input type="email" id="resetEmail" placeholder="Registered email">
+      </div>
+      <button class="auth-submit" id="sendOtpBtn" style="margin-bottom:14px;">Send OTP</button>
+      <div class="auth-form-group">
+        <label>OTP Code</label>
+        <input type="text" id="resetOTP" placeholder="6-digit code">
+      </div>
+      <div class="auth-form-group">
+        <label>New Password</label>
+        <input type="password" id="resetNewPassword" placeholder="New password" style="padding-right:44px;">
+        <span class="pw-toggle" onclick="togglePw('resetNewPassword',this)">👁️</span>
+      </div>
+      <button class="auth-submit" id="resetBtn">Reset Password</button>
+      <div class="forgot-link" style="margin-top:14px;"><a id="backToLogin">← Back to login</a></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function togglePw(id, icon) {
+    const i = document.getElementById(id);
+    i.type = i.type === 'password' ? 'text' : 'password';
+    icon.textContent = i.type === 'password' ? '👁️' : '🙈';
+  }
+
+  function switchTab(tab) {
+    document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+    document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('resetSection').style.display = 'none';
+  }
+
+  function toggleForms() { switchTab(document.getElementById('registerForm').style.display === 'none' ? 'register' : 'login'); }
+</script>
+<script src="script.js"></script>
+<script>
+  // Wire up register submit button to the original form submission
+  document.getElementById('regSubmitBtn').addEventListener('click', function() {
+    // Build a fake registerForm submit if script.js uses it
+    const fakeForm = document.getElementById('registerForm');
+    // script.js listens on #registerForm submit, so we fire it
+    const ev = new Event('submit', { bubbles: true, cancelable: true });
+    fakeForm.dispatchEvent(ev);
+  });
+
+  // Override error/success display to use new styled divs
+  const origLoginError = document.getElementById('loginError');
+  // Redirect loginError to authError
+  Object.defineProperty(window, '_authErrEl', { get: () => document.getElementById('authError') });
+</script>
+</body>
+</html>
