@@ -3,7 +3,13 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
+
+// Auto-create uploads folder if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const app = express();
 
@@ -19,7 +25,7 @@ app.use(express.static('./'));
 // configure multer for handling image uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -29,7 +35,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // serve uploaded files statically
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(uploadsDir));
 
 
 // set up email transporter (SMTP credentials via .env)
@@ -58,6 +64,9 @@ const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/back2u';
 mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 30000,
 })
 .then(() => console.log('MongoDB connected...'))
 .catch(err => console.log('MongoDB connection error:', err));
@@ -123,6 +132,12 @@ app.delete('/api/posts/:id', async (req, res) => {
 });
 
 app.post('/api/posts', upload.single('image'), async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ message: 'Database not connected. Please check MongoDB.' });
+  }
+  if (!req.body.title) {
+    return res.status(400).json({ message: 'Title is required.' });
+  }
   const image = req.file ? `/uploads/${req.file.filename}` : null;
   const post = new Post({
     title: req.body.title,
@@ -314,4 +329,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
