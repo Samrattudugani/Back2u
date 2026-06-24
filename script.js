@@ -213,43 +213,151 @@ async function fetchPosts() {
   }
 }
 
-function displayPosts(posts) {
-  const grid = document.getElementById('postsGrid');
-  if (!grid) return;
-  if (posts.length === 0) { grid.innerHTML = '<div class="no-posts">No posts yet. Be the first to post!</div>'; return; }
 
-  grid.innerHTML = posts.map(post => {
-    let whatsappLink = '';
-    if (post.userPhone) {
-      const digits = post.userPhone.replace(/[^0-9]/g, '');
-      if (digits.length > 0) whatsappLink = `https://wa.me/${digits}`;
-    }
-    return `
-    <div class="post-card">
-      ${post.image
-        ? `<img src="${SERVER_BASE}${post.image}" class="post-image" onerror="this.outerHTML='<div class=post-no-image>📷</div>'">`
-        : '<div class="post-no-image">📦</div>'}
-      <div class="post-body">
-        <h3>${escapeHtml(post.title)}</h3>
-        <div class="post-info">
-          <p>📝 ${escapeHtml(post.description || 'No description')}</p>
-          <p>📍 ${escapeHtml(post.description ? post.description.split('|')[1]?.trim().replace('Location: ','') || 'Not specified' : 'Not specified')}</p>
-        </div>
-        <div class="post-contact">
-          <strong>👤 Contact Info</strong>
-          <p><b>Name:</b> ${escapeHtml(post.userName || 'Anonymous')}</p>
-          <p><b>Phone:</b> ${escapeHtml(post.userPhone || 'Not provided')}</p>
-          <p><b>Email:</b> ${escapeHtml(post.userEmail || 'Not provided')}</p>
-        </div>
-        <div class="post-actions">
-          <button class="chat-btn" onclick="openChat('${post._id}','${escapeHtml(post.userName)}','${escapeHtml(post.userEmail)}')">💬 Message</button>
-          ${whatsappLink ? `<a href="${whatsappLink}" target="_blank" class="found-btn" style="text-align:center;text-decoration:none;">📱 WhatsApp</a>` : ''}
-          <button class="found-btn" onclick="markFound('${post._id}')">✅ Mark as Found</button>
-        </div>
-        <p class="post-date">📅 ${new Date(post.createdAt).toLocaleDateString()} ${new Date(post.createdAt).toLocaleTimeString()}</p>
-      </div>
-    </div>`;
-  }).join('');
+// function displayPosts(posts) {
+//   const grid = document.getElementById('postsGrid');
+//   if (!grid) return;
+//   if (posts.length === 0) { grid.innerHTML = '<div class="no-posts">No posts yet. Be the first to post!</div>'; return; }
+
+//   grid.innerHTML = posts.map(post => {
+//     let whatsappLink = '';
+//     if (post.userPhone) {
+//       const digits = post.userPhone.replace(/[^0-9]/g, '');
+//       if (digits.length > 0) whatsappLink = `https://wa.me/${digits}`;
+//     }
+//     return `
+//     <div class="post-card">
+//       ${post.image
+//         ? `<img src="${SERVER_BASE}${post.image}" class="post-image" onerror="this.outerHTML='<div class=post-no-image>📷</div>'">`
+//         : '<div class="post-no-image">📦</div>'}
+//       <div class="post-body">
+//         <h3>${escapeHtml(post.title)}</h3>
+//         <div class="post-info">
+//           <p>📝 ${escapeHtml(post.description || 'No description')}</p>
+//           <p>📍 ${escapeHtml(post.description ? post.description.split('|')[1]?.trim().replace('Location: ','') || 'Not specified' : 'Not specified')}</p>
+//         </div>
+//         <div class="post-contact">
+//           <strong>👤 Contact Info</strong>
+//           <p><b>Name:</b> ${escapeHtml(post.userName || 'Anonymous')}</p>
+//           <p><b>Phone:</b> ${escapeHtml(post.userPhone || 'Not provided')}</p>
+//           <p><b>Email:</b> ${escapeHtml(post.userEmail || 'Not provided')}</p>
+//         </div>
+//         <div class="post-actions">
+//           <button class="chat-btn" onclick="openChat('${post._id}','${escapeHtml(post.userName)}','${escapeHtml(post.userEmail)}')">💬 Message</button>
+//           ${whatsappLink ? `<a href="${whatsappLink}" target="_blank" class="found-btn" style="text-align:center;text-decoration:none;">📱 WhatsApp</a>` : ''}
+//           <button class="found-btn" onclick="markFound('${post._id}')">✅ Mark as Found</button>
+//         </div>
+//         <p class="post-date">📅 ${new Date(post.createdAt).toLocaleDateString()} ${new Date(post.createdAt).toLocaleTimeString()}</p>
+//       </div>
+//     </div>`;
+//   }).join('');
+// }
+
+function displayPosts(posts) {
+const grid = document.getElementById('postsGrid');
+if (!grid) return;
+
+if (posts.length === 0) {
+grid.innerHTML = '<div class="no-posts">No posts yet. Be the first to post!</div>';
+return;
+}
+
+grid.innerHTML = posts.map(post => {
+let whatsappLink = '';
+
+
+if (post.userPhone) {
+  const digits = post.userPhone.replace(/[^0-9]/g, '');
+  if (digits.length > 0) {
+    whatsappLink = `https://wa.me/${digits}`;
+  }
+}
+
+return `
+<div class="post-card">
+
+  ${post.image
+    ? `<img src="${SERVER_BASE}${post.image}" class="post-image"
+       onerror="this.outerHTML='<div class=post-no-image>📷</div>'">`
+    : '<div class="post-no-image">📦</div>'}
+
+  ${post.found ? `
+  <div style="
+    background:green;
+    color:white;
+    text-align:center;
+    padding:10px;
+    font-weight:bold;
+  ">
+    ✅ ITEM FOUND
+  </div>
+  ` : ''}
+
+  <div class="post-body">
+
+    <h3>${escapeHtml(post.title)}</h3>
+
+    <div class="post-info">
+      <p>📝 ${escapeHtml(post.description || 'No description')}</p>
+      <p>📍 ${escapeHtml(
+        post.description
+          ? post.description.split('|')[1]?.trim().replace('Location: ', '') || 'Not specified'
+          : 'Not specified'
+      )}</p>
+    </div>
+
+    <div class="post-contact">
+      <strong>👤 Contact Info</strong>
+      <p><b>Name:</b> ${escapeHtml(post.userName || 'Anonymous')}</p>
+      <p><b>Phone:</b> ${escapeHtml(post.userPhone || 'Not provided')}</p>
+      <p><b>Email:</b> ${escapeHtml(post.userEmail || 'Not provided')}</p>
+    </div>
+
+    <div class="post-actions">
+
+      ${!post.found ? `
+        <button class="chat-btn"
+          onclick="openChat('${post._id}','${escapeHtml(post.userName)}','${escapeHtml(post.userEmail)}')">
+          💬 Message
+        </button>
+      ` : ''}
+
+      ${!post.found && whatsappLink
+        ? `<a href="${whatsappLink}" target="_blank"
+            class="found-btn"
+            style="text-align:center;text-decoration:none;">
+            📱 WhatsApp
+           </a>`
+        : ''}
+
+      ${!post.found
+        ? `<button class="found-btn"
+            onclick="markFound('${post._id}')">
+            ✅ Mark as Found
+           </button>`
+        : `<div style="
+            background:green;
+            color:white;
+            padding:10px;
+            border-radius:8px;
+            text-align:center;
+            font-weight:bold;">
+            FOUND
+           </div>`
+      }
+
+    </div>
+
+    <p class="post-date">
+      📅 ${new Date(post.createdAt).toLocaleDateString()}
+      ${new Date(post.createdAt).toLocaleTimeString()}
+    </p>
+
+  </div>
+</div>`;
+
+
+}).join('');
 }
 
 function escapeHtml(text) {

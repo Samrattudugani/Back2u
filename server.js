@@ -81,17 +81,37 @@ const userSchema = new mongoose.Schema({
   otpExpiry: Date,
   createdAt: { type: Date, default: Date.now }
 });
-
 const postSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
-  image: { type: String }, // URL path to uploaded image or base64 string (legacy)
+  image: String,
+
   userId: mongoose.Schema.Types.ObjectId,
   userName: String,
   userPhone: String,
   userEmail: String,
-  createdAt: { type: Date, default: Date.now }
+
+  // NEW FIELD
+  found: {
+    type: Boolean,
+    default: false
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
+// const postSchema = new mongoose.Schema({
+//   title: { type: String, required: true },
+//   description: String,
+//   image: { type: String }, // URL path to uploaded image or base64 string (legacy)
+//   userId: mongoose.Schema.Types.ObjectId,
+//   userName: String,
+//   userPhone: String,
+//   userEmail: String,
+//   createdAt: { type: Date, default: Date.now }
+// });
 
 const messageSchema = new mongoose.Schema({
   senderId: mongoose.Schema.Types.ObjectId,
@@ -119,17 +139,43 @@ app.get('/api/posts', async (req, res) => {
 });
 
 // delete a post by ID (used when marking item as found)
-app.delete('/api/posts/:id', async (req, res) => {
-  try {
-    const deleted = await Post.findByIdAndDelete(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-    res.json(deleted);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+// app.delete('/api/posts/:id', async (req, res) => {
+//   try {
+//     const deleted = await Post.findByIdAndDelete(req.params.id);
+//     if (!deleted) {
+//       return res.status(404).json({ message: 'Post not found' });
+//     }
+//     res.json(deleted);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
+
+app.put('/api/posts/:id/found', async (req, res) => {
+try {
+const post = await Post.findByIdAndUpdate(
+req.params.id,
+{ found: true },
+{ new: true }
+);
+
+```
+if (!post) {
+  return res.status(404).json({
+    message: 'Post not found'
+  });
+}
+
+res.json(post);
+```
+
+} catch (err) {
+res.status(500).json({
+message: err.message
 });
+}
+});
+
 
 app.post('/api/posts', upload.single('image'), async (req, res) => {
   if (mongoose.connection.readyState !== 1) {
