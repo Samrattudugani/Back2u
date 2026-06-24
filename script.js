@@ -1,11 +1,22 @@
-// Auto-detect API base URL — works on localhost AND Railway/GitHub Pages
-const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost:3000/api'
-  : 'https://back2u-production.up.railway.app/api';
-const SERVER_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost:3000'
-  : 'https://back2u-production.up.railway.app';
+// // Auto-detect API base URL — works on localhost AND Railway/GitHub Pages
+// const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+//   ? 'http://localhost:3000/api'
+//   : 'https://back2u-production.up.railway.app/api';
+// const SERVER_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+//   ? 'http://localhost:3000'
+//   : 'https://back2u-production.up.railway.app';
+// Auto-detect API URL
+const API_BASE =
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : 'https://back2u-m3uj.onrender.com/api';
 
+const SERVER_BASE =
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : 'https://back2u-m3uj.onrender.com';
 let currentUserId = null;
 let currentUsername = null;
 let currentPhone = null;
